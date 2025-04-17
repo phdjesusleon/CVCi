@@ -1,0 +1,108 @@
+Sintaxis para el Cálculo Del CVCi en Spss
+
+Lozada-Medina, Jesús León. 2025
+
+*#############################################################################.
+* CÁLCULO DEL CVCi POR CADA UNO DE LOS ÍTEMS
+* Título: 'CÁLCULO DEL CVC. INSTRUMENTO GENERAL – Lozada-Medina 2025'
+* Referencia: (Hernández-Nieto, 2002)
+*#############################################################################.
+
+* ESCALA DE VALORACIÓN CONTINUA DE 1 A 5 PUNTOS:
+*   - PUNTO MÍNIMO  = 1 (INACEPTABLE)
+*   - PUNTO MEDIO   = 3 (REGULAR)
+*   - PUNTO MÁXIMO  = 5 (EXCELENTE)
+*------------------------------------------------------------------------------.
+
+* INICIALIZACIÓN.
+COMPUTE TEST = 1.
+EXECUTE.
+
+* PARÁMETROS BÁSICOS.
+COMPUTE PM = 5.          /* PUNTO MÁXIMO DE LA ESCALA */
+COMPUTE J = 6.           /* NÚMERO TOTAL DE JUECES */
+
+* CÁLCULO DE PROMEDIOS POR ÍTEM.
+COMPUTE PROJUEZ = (JUEZ1 + JUEZ2 + JUEZ3 + JUEZ4 + JUEZ5 + JUEZ6) / J.
+EXECUTE.
+
+* CÁLCULO DE ERROR Y VALIDEZ.
+COMPUTE P_ERROR = (1/J) ** J.
+COMPUTE CVCic = (PROJUEZ / PM) - P_ERROR.
+EXECUTE.
+
+*------------------------------------------------------------------------------.
+* FORMATOS DE SALIDA.
+PRINT FORMAT PROJUEZ CVCic P_ERROR (F6.4).
+
+* LISTADO DE EVALUACIONES POR ÍTEM.
+SUBTITLE 'EVALUACIONES POR CADA ÍTEM, SEGÚN CRITERIOS'.
+LIST
+  ITEMS
+  JUEZ1 JUEZ2 JUEZ3 JUEZ4 JUEZ5 JUEZ6
+  PROJUEZ CVCic P_ERROR.
+
+*#############################################################################.
+* CLASIFICACIÓN DE LA VALIDEZ POR ÍTEM (CVCic).
+*------------------------------------------------------------------------------.
+RECODE CVCic
+  (Lowest thru 0.60=1)
+  (0.61 thru 0.70=2)
+  (0.71 thru 0.80=3)
+  (0.81 thru 0.90=4)
+  (0.91 thru Highest=5)
+  INTO EVAL_CVCic.
+EXECUTE.
+
+VALUE LABELS EVAL_CVCic
+  1 'INACEPTABLE'
+  2 'DEFICIENTE'
+  3 'ACEPTABLE'
+  4 'BUENO'
+  5 'EXCELENTE'.
+
+* RESULTADOS CLASIFICADOS.
+SUBTITLE 'PROMEDIOS Y EVALUACIÓN CVC POR ÍTEM'.
+LIST
+  ITEMS
+  PROJUEZ
+  CVCic
+  EVAL_CVCic
+  P_ERROR.
+
+*#############################################################################.
+* CÁLCULO DEL CVC TOTAL (CVCtc).
+*------------------------------------------------------------------------------.
+AGGREGATE
+  /OUTFILE=*
+  MODE=ADDVARIABLES
+  OVERWRITE=YES
+  /BREAK=test
+  /PROJUEZt = MEAN(PROJUEZ)
+  /CVCtc = MEAN(CVCic)
+  /P_ERRORt = MEAN(P_ERROR).
+
+* CLASIFICACIÓN DEL CVC TOTAL.
+RECODE CVCtc
+  (Lowest thru 0.60=1)
+  (0.61 thru 0.70=2)
+  (0.71 thru 0.80=3)
+  (0.81 thru 0.90=4)
+  (0.91 thru Highest=5)
+  INTO EVAL_CVCtc.
+EXECUTE.
+
+VALUE LABELS EVAL_CVCtc
+  1 'INACEPTABLE'
+  2 'DEFICIENTE'
+  3 'ACEPTABLE'
+  4 'BUENO'
+  5 'EXCELENTE'.
+
+*------------------------------------------------------------------------------.
+* RESULTADOS FINALES.
+PRINT FORMAT PROJUEZt CVCtc P_ERRORt (F6.4).
+
+SUBTITLE 'COEFICIENTE DE VALIDEZ DE CONTENIDO TOTAL'.
+LIST PROJUEZt CVCtc P_ERRORt EVAL_CVCtc /CASES=1.
+
